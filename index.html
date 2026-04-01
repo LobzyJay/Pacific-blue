@@ -627,11 +627,10 @@ display:flex;flex-direction:column;gap:0;
 .contact-action{
 display:flex;align-items:center;gap:16px;
 padding:20px 0;
-border-bottom:1px solid var(--border2);
-transition:border-color .18s;
+border-bottom:none;
+transition:color .18s;
 }
 .contact-action:first-child{border-top:none}
-.contact-action:hover{border-bottom-color:var(--border)}
 .contact-action:hover .contact-action-arrow{transform:translateX(4px)}
 .contact-action-label{
 font-size:10px;font-weight:500;letter-spacing:.18em;
@@ -1111,23 +1110,40 @@ footer             { padding: 56px var(--outer) 32px; }
 #page-loader{
   position:fixed;inset:0;z-index:10000;
   background:#05101e;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:28px;
-  transition:opacity .7s cubic-bezier(.16,1,.3,1) .05s,visibility .7s .05s;
+  overflow:hidden;
+  transition:opacity .9s cubic-bezier(.16,1,.3,1),visibility .9s;
 }
 #page-loader.loaded{opacity:0;visibility:hidden;pointer-events:none;}
-#page-loader .pl-logo{width:130px;height:auto;display:block;}
-.loader-dots{display:flex;gap:7px;}
-.loader-dots span{
-  width:5px;height:5px;border-radius:50%;
-  background:rgba(148,198,250,.5);
-  animation:ldot 1s ease-in-out infinite;
+#loader-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+#loader-orbital{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:140px;height:140px;
+  pointer-events:none;
 }
-.loader-dots span:nth-child(2){animation-delay:.2s;}
-.loader-dots span:nth-child(3){animation-delay:.4s;}
-@keyframes ldot{
-  0%,80%,100%{transform:scale(.55);opacity:.25;}
-  40%{transform:scale(1);opacity:1;}
+#loader-orbital svg{width:100%;height:100%;}
+.loader-orbit-track{
+  fill:none;stroke:rgba(148,198,250,.07);stroke-width:.6;
+}
+.loader-orbit-dot{
+  transform-origin:70px 70px;
+  animation:loaderOrbit 2.4s linear infinite;
+}
+.loader-orbit-dot circle{fill:#94c6fa;filter:drop-shadow(0 0 4px rgba(148,198,250,.9));}
+@keyframes loaderOrbit{
+  from{transform:rotate(0deg);}
+  to{transform:rotate(360deg);}
+}
+/* thin bottom progress bar */
+#loader-bar{
+  position:absolute;bottom:48px;left:50%;transform:translateX(-50%);
+  width:140px;height:1px;background:rgba(148,198,250,.12);
+  border-radius:1px;overflow:hidden;
+}
+#loader-bar-fill{
+  width:0%;height:100%;
+  background:linear-gradient(90deg,rgba(148,198,250,.4),#94c6fa);
+  transition:width 3.5s cubic-bezier(.4,0,.2,1);
 }
 
 </style>
@@ -1136,18 +1152,18 @@ footer             { padding: 56px var(--outer) 32px; }
 
 <!-- PAGE LOADER -->
 <div id="page-loader" aria-hidden="true">
-  <svg class="pl-logo" viewBox="-1 0 252 84" xmlns="http://www.w3.org/2000/svg" aria-label="Pacific Blue">
-    <path d="M12.083 62.436H6.651V48.932h5.432c4.803 0 7.494 2.69 7.494 6.752s-2.69 6.752-7.494 6.752m.113-19.69H0v40.638h6.639V68.61h5.557c8.299 0 14.02-5.319 14.02-12.938s-5.721-12.939-14.02-12.939" fill="#fff"/>
-    <path d="M72.598 60.21c3.144 0 5.432 1.434 7.041 3.433l4.527-4.01c-2.578-3.144-6.526-5.32-11.568-5.32-8.361 0-14.774 6.526-14.774 14.774 0 8.249 6.413 14.774 14.774 14.774 5.042 0 8.99-2.175 11.568-5.318l-4.527-4.011c-1.596 1.999-3.897 3.432-7.04 3.432-4.804 0-8.362-3.835-8.362-8.877s3.546-8.876 8.361-8.876" fill="#fff"/>
-    <path d="M93.221 55.231h-6.3V83.85h6.3z" fill="#fff"/>
-    <path d="M135.708 60.211c3.143 0 5.431 1.433 7.041 3.433l4.526-4.011c-2.577-3.144-6.525-5.319-11.567-5.319-8.362 0-14.774 6.526-14.774 14.774s6.412 14.774 14.774 14.774c5.042 0 8.99-2.175 11.567-5.319l-4.526-4.01c-1.597 1.998-3.898 3.432-7.041 3.432-4.804 0-8.362-3.835-8.362-8.877s3.546-8.877 8.362-8.877" fill="#fff"/>
-    <path d="M166.688 77.26h-8.991V65.53h8.991c4.413 0 6.701 2.514 6.701 5.896s-2.288 5.834-6.701 5.834m-8.991-28.39h7.104c3.659 0 5.897 2.514 5.897 5.494 0 3.143-2.238 5.495-5.897 5.495h-7.104zm15.856 12.938c2.288-1.773 3.721-4.238 3.721-7.897 0-6.123-4.639-11.165-12.02-11.165h-14.195v40.638h15.566c7.783 0 13.39-4.577 13.39-11.681 0-5.092-2.627-8.248-6.462-9.908" fill="#94c6fa"/>
-    <path d="M188.905 43.211h-6.3V83.85h6.3z" fill="#94c6fa"/>
-    <path d="M212.291 73.312c-1.144 2.98-3.608 4.69-6.865 4.69-4.124 0-6.349-2.98-6.349-7.104V54.753h-6.3V71.64c0 7.38 4.527 12.196 11.455 12.196 2.98 0 6.01-.918 8.072-3.256v2.803h6.299V54.766h-6.299v18.546z" fill="#94c6fa"/>
-    <path d="M228.108 65.818c.918-4.463 4.69-6.123 7.607-6.123 3.835 0 6.978 2 7.607 6.123h-15.227zm8.009-11.505c-8.248 0-14.535 6.413-14.535 14.774 0 8.362 6.526 14.774 14.648 14.774 5.269 0 9.556-2.238 12.083-5.431l-4.526-3.898c-1.597 1.999-4.124 3.495-7.557 3.495-3.948 0-7.896-2.804-8.361-7.607h22.092c.452-9.619-5.319-16.081-13.857-16.081" fill="#94c6fa"/>
-    <path d="M117.99 47.964c0-5.62-4.564-10.185-10.184-10.185-5.621 0-10.185 4.565-10.185 10.185v35.671h6.287v-22.33h7.783v22.33h6.299V55.018h-14.082v-7.054a3.9 3.9 0 0 1 3.898-3.898 3.9 3.9 0 0 1 3.897 3.898h-.012v2.464h6.299v-.855l-.012-1.42c0-.063.012-.126.012-.19" fill="#fff"/>
-  </svg>
-  <div class="loader-dots"><span></span><span></span><span></span></div>
+  <canvas id="loader-canvas"></canvas>
+  <div id="loader-orbital">
+    <svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+      <!-- orbit track -->
+      <circle class="loader-orbit-track" cx="70" cy="70" r="52"/>
+      <!-- rotating dot -->
+      <g class="loader-orbit-dot">
+        <circle cx="70" cy="18" r="2.5"/>
+      </g>
+    </svg>
+  </div>
+  <div id="loader-bar"><div id="loader-bar-fill"></div></div>
 </div>
 
 <!-- SVG SPRITE — real PB logo -->
@@ -2026,17 +2042,82 @@ window.addEventListener('scroll',()=>{
   build(); draw();
 })();
 
-// ── PAGE LOADER DISMISS ──
+// ── PAGE LOADER ──
 (function(){
   var loader = document.getElementById('page-loader');
-  if(!loader) return;
-  var start = Date.now(), MIN = 800;
-  function dismiss(){
-    var wait = Math.max(0, MIN - (Date.now() - start));
-    setTimeout(function(){ loader.classList.add('loaded'); }, wait);
+  var cv = document.getElementById('loader-canvas');
+  if(!loader || !cv) return;
+
+  // Canvas starfield — mirrors the Three.js scene atmosphere
+  var ctx = cv.getContext('2d');
+  var stars = [];
+  var RAF;
+
+  function resize(){
+    cv.width  = window.innerWidth;
+    cv.height = window.innerHeight;
   }
-  if(document.readyState === 'complete') { dismiss(); }
-  else { window.addEventListener('load', dismiss); }
+  resize();
+  window.addEventListener('resize', resize, {passive:true});
+
+  // Seed stars
+  for(var i = 0; i < 180; i++){
+    stars.push({
+      x: Math.random(),
+      y: Math.random(),
+      r: Math.random() * 1.2 + 0.2,
+      sp: Math.random() * 0.00008 + 0.00003,  // drift speed
+      a: Math.random(),                          // current alpha
+      da: (Math.random() * 0.004 + 0.001) * (Math.random() < .5 ? 1 : -1) // twinkle
+    });
+  }
+
+  function drawLoader(ts){
+    RAF = requestAnimationFrame(drawLoader);
+    ctx.clearRect(0, 0, cv.width, cv.height);
+
+    stars.forEach(function(s){
+      // slow drift upward
+      s.y -= s.sp;
+      if(s.y < 0) { s.y = 1; s.x = Math.random(); }
+
+      // twinkle
+      s.a += s.da;
+      if(s.a > 0.85 || s.a < 0.05) s.da *= -1;
+
+      var px = s.x * cv.width;
+      var py = s.y * cv.height;
+
+      ctx.beginPath();
+      ctx.arc(px, py, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(148,198,250,' + s.a.toFixed(2) + ')';
+      ctx.fill();
+    });
+
+    // subtle centre glow pulse
+    var pulse = 0.04 + Math.sin(ts * 0.0008) * 0.02;
+    var cx2 = cv.width * 0.5, cy2 = cv.height * 0.5;
+    var grd = ctx.createRadialGradient(cx2, cy2, 0, cx2, cy2, cv.height * 0.38);
+    grd.addColorStop(0,   'rgba(20,60,120,' + pulse + ')');
+    grd.addColorStop(1,   'rgba(20,60,120,0)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+  }
+  drawLoader(0);
+
+  // Start progress bar on next frame so CSS transition fires
+  requestAnimationFrame(function(){
+    var fill = document.getElementById('loader-bar-fill');
+    if(fill) fill.style.width = '100%';
+  });
+
+  // Dismiss after 3.5s
+  setTimeout(function(){
+    loader.classList.add('loaded');
+    setTimeout(function(){
+      cancelAnimationFrame(RAF);
+    }, 1000);
+  }, 3500);
 })();
 
 </script>
