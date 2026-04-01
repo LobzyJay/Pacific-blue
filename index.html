@@ -204,27 +204,39 @@ font-size:11px;font-weight:600;letter-spacing:.28em;
 text-transform:uppercase;color:var(--sky);
 display:block;
 margin-bottom:24px;
-opacity:0;animation:fadeUp .7s .3s forwards;
 }
 .hero-h1{
 font-size:clamp(32px,4.5vw,60px);
 font-weight:500;line-height:1.1;letter-spacing:-.015em;
 color:#fff;
 margin-bottom:24px;
-opacity:0;animation:fadeUp .8s .5s forwards;
 }
 .hero-h1 em{font-style:normal;color:var(--sky)}
 .hero-sub{
 font-size:clamp(15px,1.4vw,17px);font-weight:300;
 color:rgba(255,255,255,.65);line-height:1.75;
 max-width:480px;margin-bottom:36px;
-opacity:0;animation:fadeUp .8s .7s forwards;
 }
 .hero-sub a{color:var(--sky);border-bottom:1px solid rgba(148,198,250,.35)}
 .hero-ctas{
 display:flex;gap:14px;flex-wrap:wrap;align-items:center;
-opacity:0;animation:fadeUp .8s .9s forwards;
 }
+/* ── Hero entrance system (JS-controlled) ── */
+.hero-el{
+  opacity:0;transform:translateY(26px);
+  transition:opacity .85s cubic-bezier(.16,1,.3,1),transform .85s cubic-bezier(.16,1,.3,1);
+  will-change:opacity,transform;
+}
+.hero-el.hero-in{opacity:1;transform:none;}
+.hero-d1{transition-delay:.14s;}
+.hero-d2{transition-delay:.28s;}
+.hero-d3{transition-delay:.44s;}
+/* Header slides in from top — once only */
+.site-header{
+  opacity:0;transform:translateY(-18px);
+  transition:opacity .7s cubic-bezier(.16,1,.3,1) .06s,transform .7s cubic-bezier(.16,1,.3,1) .06s,background var(--t),border-color var(--t),backdrop-filter var(--t);
+}
+.site-header.nav-in{opacity:1;transform:translateY(0);}
 .cta-primary{
 padding:14px 32px;background:#1a42cc;border-radius:8px;
 font-size:13px;font-weight:500;letter-spacing:.05em;color:#fff;
@@ -239,7 +251,6 @@ font-size:13px;font-weight:500;color:rgba(255,255,255,.82);
 transition:background .18s,border-color .18s,color .18s;
 }
 .cta-ghost:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.6);color:#fff}
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 .quick-links{
 background:var(--quick-bg);
 border-bottom:1px solid var(--quick-border);
@@ -1109,11 +1120,12 @@ footer             { padding: 56px var(--outer) 32px; }
 /* ── PAGE LOADER ── */
 #page-loader{
   position:fixed;inset:0;z-index:10000;
-  background:#05101e;
+  background:#000;
   overflow:hidden;
-  transition:opacity .9s cubic-bezier(.16,1,.3,1),visibility .9s;
+  transition:opacity 1s cubic-bezier(.16,1,.3,1),transform 1s cubic-bezier(.16,1,.3,1),visibility 1s;
+  transform:scale(1);
 }
-#page-loader.loaded{opacity:0;visibility:hidden;pointer-events:none;}
+#page-loader.loaded{opacity:0;visibility:hidden;pointer-events:none;transform:scale(1.05);}
 #loader-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
 #loader-orbital{
   position:absolute;top:50%;left:50%;
@@ -1254,10 +1266,10 @@ footer             { padding: 56px var(--outer) 32px; }
 <section id="hero">
   <canvas id="solar-canvas"></canvas>
   <div class="hero-content">
-    <div class="hero-eyebrow">100% Renewable Energy &middot; Australia</div>
-    <h1 class="hero-h1">Make the<br><em>Switch today.</em></h1>
-    <p class="hero-sub">Get simple, great-value plans through our energy brand, <a href="#">Tango Energy</a>.</p>
-    <div class="hero-ctas">
+    <div class="hero-eyebrow hero-el">100% Renewable Energy &middot; Australia</div>
+    <h1 class="hero-h1 hero-el hero-d1">Make the<br><em>Switch today.</em></h1>
+    <p class="hero-sub hero-el hero-d2">Get simple, great-value plans through our energy brand, <a href="#">Tango Energy</a>.</p>
+    <div class="hero-ctas hero-el hero-d3">
       <a href="#" class="cta-primary">View energy plans</a>
       <a href="#gen-section" class="cta-ghost">Our generation</a>
     </div>
@@ -2114,10 +2126,42 @@ window.addEventListener('scroll',()=>{
   // Dismiss after 3.5s
   setTimeout(function(){
     loader.classList.add('loaded');
-    setTimeout(function(){
-      cancelAnimationFrame(RAF);
-    }, 1000);
+    setTimeout(function(){ cancelAnimationFrame(RAF); }, 1200);
   }, 3500);
+})();
+
+// ── HERO ENTRANCE + SCROLL RE-ANIMATION ──
+(function(){
+  var heroEls  = document.querySelectorAll('.hero-el');
+  var header   = document.querySelector('.site-header');
+  var heroSec  = document.getElementById('hero');
+  var ready    = false;
+
+  function heroIn(){
+    heroEls.forEach(function(el){ el.classList.add('hero-in'); });
+  }
+  function heroOut(){
+    heroEls.forEach(function(el){ el.classList.remove('hero-in'); });
+  }
+
+  // Fire hero content slightly before loader finishes fading — elements
+  // emerge through the dissolving overlay for a seamless "entering" feel
+  setTimeout(function(){
+    ready = true;
+    if(header) header.classList.add('nav-in');
+    heroIn();
+  }, 3250);
+
+  // Bidirectional scroll — reset & replay when scrolling back to hero
+  if(heroSec){
+    new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(!ready) return;
+        if(e.intersectionRatio >= 0.15) heroIn();
+        else if(e.intersectionRatio === 0) heroOut();
+      });
+    }, { threshold: [0, 0.15] }).observe(heroSec);
+  }
 })();
 
 </script>
