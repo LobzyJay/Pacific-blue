@@ -265,7 +265,7 @@ background:#000;
 margin:0;
 }
 .gen-sticky{
-position:sticky;top:0;height:100vh;overflow:hidden;
+position:sticky;top:72px;height:calc(100vh - 72px);overflow:hidden;
 display:grid;grid-template-columns:50% 50%;
 background:#000;
 }
@@ -638,8 +638,8 @@ display:flex;flex-direction:column;gap:0;
 .contact-action{
 display:flex;align-items:center;gap:16px;
 padding:20px 0;
-border-bottom:none;
-transition:color .18s;
+border-bottom:1px solid var(--border2);
+transition:border-color .18s;
 }
 .contact-action:first-child{border-top:none}
 .contact-action:hover .contact-action-arrow{transform:translateX(4px)}
@@ -955,15 +955,12 @@ footer::before{
 /* Contact actions — slide from left */
 .contact-action.anim-el {
   transform: translateX(-20px);
-  border-left: 1px solid transparent;
   transition:
     opacity .65s cubic-bezier(.16,1,.3,1),
-    transform .65s cubic-bezier(.16,1,.3,1),
-    border-color .65s;
+    transform .65s cubic-bezier(.16,1,.3,1);
 }
 .contact-action.anim-el.anim-in {
   transform: translateX(0);
-  border-left-color: inherit;
 }
 /* Delay utilities */
 .anim-d1 { transition-delay: .1s; }
@@ -1749,8 +1746,9 @@ window.addEventListener('scroll',()=>{
     const sec = document.getElementById('gen-section');
     if(!sec) return;
     const rect = sec.getBoundingClientRect();
-    const total = sec.offsetHeight - window.innerHeight;
-    targetProg = Math.max(0, Math.min(1, -rect.top / total));
+    const hh = 72; // header height — sticky snaps at this offset
+    const usable = sec.offsetHeight - (window.innerHeight - hh);
+    targetProg = Math.max(0, Math.min(1, (hh - rect.top) / usable));
   }
   window.__lenisScrollCbs = window.__lenisScrollCbs || [];
   window.__lenisScrollCbs.push(onScroll);
