@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Draft / versioned working files
+pacific-blue_*.html
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
