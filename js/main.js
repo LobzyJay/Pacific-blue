@@ -591,20 +591,21 @@ setTimeout(function(){
 })();
 
 // ── MOBILE GEN-SECTION TEXT ANIMATION ──
+// ── MOBILE GEN-SECTION: each phase reveals independently as scrolled into view ──
 (function(){
   if(!window.matchMedia('(max-width:960px)').matches) return;
-  var phase0 = document.getElementById('gen-phase-0');
-  if(!phase0) return;
-  var genSec = document.getElementById('gen-section');
-  new IntersectionObserver(function(entries){
+  var phases = document.querySelectorAll('.gen-phase');
+  if(!phases.length) return;
+  var obs = new IntersectionObserver(function(entries){
     entries.forEach(function(e){
       if(e.intersectionRatio >= 0.15){
-        phase0.classList.add('gen-mobile-in');
+        e.target.classList.add('gen-mobile-in');
       } else if(e.intersectionRatio === 0){
-        phase0.classList.remove('gen-mobile-in');
+        e.target.classList.remove('gen-mobile-in');
       }
     });
-  }, {threshold:[0, 0.15]}).observe(genSec);
+  }, {threshold:[0, 0.15]});
+  phases.forEach(function(p){ obs.observe(p); });
 })();
 
 // ── HERO ENTRANCE + SCROLL RE-ANIMATION ──
