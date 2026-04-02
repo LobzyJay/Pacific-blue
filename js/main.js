@@ -572,65 +572,7 @@ window.addEventListener('scroll',()=>{
 // ── PAGE LOADER ──
 (function(){
   var loader = document.getElementById('page-loader');
-  var cv = document.getElementById('loader-canvas');
-  if(!loader || !cv) return;
-
-  // Canvas starfield — mirrors the Three.js scene atmosphere
-  var ctx = cv.getContext('2d');
-  var stars = [];
-  var RAF;
-
-  function resize(){
-    cv.width  = window.innerWidth;
-    cv.height = window.innerHeight;
-  }
-  resize();
-  window.addEventListener('resize', resize, {passive:true});
-
-  // Seed stars
-  for(var i = 0; i < 180; i++){
-    stars.push({
-      x: Math.random(),
-      y: Math.random(),
-      r: Math.random() * 1.2 + 0.2,
-      sp: Math.random() * 0.00008 + 0.00003,  // drift speed
-      a: Math.random(),                          // current alpha
-      da: (Math.random() * 0.004 + 0.001) * (Math.random() < .5 ? 1 : -1) // twinkle
-    });
-  }
-
-  function drawLoader(ts){
-    RAF = requestAnimationFrame(drawLoader);
-    ctx.clearRect(0, 0, cv.width, cv.height);
-
-    stars.forEach(function(s){
-      // slow drift upward
-      s.y -= s.sp;
-      if(s.y < 0) { s.y = 1; s.x = Math.random(); }
-
-      // twinkle
-      s.a += s.da;
-      if(s.a > 0.85 || s.a < 0.05) s.da *= -1;
-
-      var px = s.x * cv.width;
-      var py = s.y * cv.height;
-
-      ctx.beginPath();
-      ctx.arc(px, py, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(148,198,250,' + s.a.toFixed(2) + ')';
-      ctx.fill();
-    });
-
-    // subtle centre glow pulse
-    var pulse = 0.04 + Math.sin(ts * 0.0008) * 0.02;
-    var cx2 = cv.width * 0.5, cy2 = cv.height * 0.5;
-    var grd = ctx.createRadialGradient(cx2, cy2, 0, cx2, cy2, cv.height * 0.38);
-    grd.addColorStop(0,   'rgba(20,60,120,' + pulse + ')');
-    grd.addColorStop(1,   'rgba(20,60,120,0)');
-    ctx.fillStyle = grd;
-    ctx.fillRect(0, 0, cv.width, cv.height);
-  }
-  drawLoader(0);
+  if(!loader) return;
 
   // Start progress bar on next frame so CSS transition fires
   requestAnimationFrame(function(){
@@ -641,8 +583,24 @@ window.addEventListener('scroll',()=>{
   // Dismiss after 3.5s
   setTimeout(function(){
     loader.classList.add('loaded');
-    setTimeout(function(){ cancelAnimationFrame(RAF); }, 1200);
   }, 3500);
+})();
+
+// ── MOBILE GEN-SECTION TEXT ANIMATION ──
+(function(){
+  if(!window.matchMedia('(max-width:960px)').matches) return;
+  var phase0 = document.getElementById('gen-phase-0');
+  if(!phase0) return;
+  var genSec = document.getElementById('gen-section');
+  new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.intersectionRatio >= 0.15){
+        phase0.classList.add('gen-mobile-in');
+      } else if(e.intersectionRatio === 0){
+        phase0.classList.remove('gen-mobile-in');
+      }
+    });
+  }, {threshold:[0, 0.15]}).observe(genSec);
 })();
 
 // ── HERO ENTRANCE + SCROLL RE-ANIMATION ──
