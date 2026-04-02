@@ -50,38 +50,38 @@ window.addEventListener('scroll',()=>{
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&open)toggle(false);});
 })();
 
-// REVEAL — one-way (hero / header elements stay in after firing)
-(function(){
-  const obs = new IntersectionObserver(entries=>{
-    entries.forEach(e=>{
-      if(e.isIntersecting){ e.target.classList.add('in'); obs.unobserve(e.target); }
-    });
-  },{threshold:.08, rootMargin:'0px 0px -40px 0px'});
-  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
-})();
+// REVEAL + SCROLL ANIMATIONS — deferred until after loader so nothing fires while hidden
+// Both observers are initialised at 3 600 ms, just after the loader begins its fade-out,
+// so every element plays its entrance animation as the page is revealed.
+setTimeout(function(){
 
-// SCROLL ANIMATION — bidirectional: resets when you scroll back up, replays on re-entry
-(function(){
-  const els = document.querySelectorAll('.anim-el');
-  if(!els.length) return;
+  // REVEAL — one-way (fires once, stays in)
+  (function(){
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('in'); obs.unobserve(e.target); }
+      });
+    },{threshold:.08, rootMargin:'0px 0px -40px 0px'});
+    document.querySelectorAll('.reveal').forEach(function(el){ obs.observe(el); });
+  })();
 
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if(e.intersectionRatio >= 0.1) {
-        // Entering — play animation
-        e.target.classList.add('anim-in');
-      } else if(e.intersectionRatio === 0) {
-        // Fully left viewport — reset so it replays next time
-        e.target.classList.remove('anim-in');
-      }
-    });
-  }, {
-    threshold: [0, 0.1],
-    rootMargin: '0px 0px -50px 0px'
-  });
+  // SCROLL ANIMATION — bidirectional: resets when scrolled back up, replays on re-entry
+  (function(){
+    var els = document.querySelectorAll('.anim-el');
+    if(!els.length) return;
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.intersectionRatio >= 0.1){
+          e.target.classList.add('anim-in');
+        } else if(e.intersectionRatio === 0){
+          e.target.classList.remove('anim-in');
+        }
+      });
+    },{threshold:[0, 0.1], rootMargin:'0px 0px -50px 0px'});
+    els.forEach(function(el){ observer.observe(el); });
+  })();
 
-  els.forEach(el => observer.observe(el));
-})();
+}, 3600);
 
 // HERO — Interactive solar canvas
 (function(){
@@ -574,15 +574,19 @@ window.addEventListener('scroll',()=>{
   var loader = document.getElementById('page-loader');
   if(!loader) return;
 
+  // Lock scroll while loader covers the page
+  document.body.style.overflow = 'hidden';
+
   // Start progress bar on next frame so CSS transition fires
   requestAnimationFrame(function(){
     var fill = document.getElementById('loader-bar-fill');
     if(fill) fill.style.width = '100%';
   });
 
-  // Dismiss after 3.5s
+  // Dismiss after 3.5s, restore scroll immediately
   setTimeout(function(){
     loader.classList.add('loaded');
+    document.body.style.overflow = '';
   }, 3500);
 })();
 
