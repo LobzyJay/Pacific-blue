@@ -263,7 +263,7 @@ setTimeout(function(){
     const sec = document.getElementById('gen-section');
     if(!sec) return;
     const rect = sec.getBoundingClientRect();
-    const hh = 72; // header height — sticky snaps at this offset
+    const hh = (document.querySelector('.site-header')||{offsetHeight:72}).offsetHeight; // dynamic header height
     const usable = sec.offsetHeight - (window.innerHeight - hh);
     targetProg = Math.max(0, Math.min(1, (hh - rect.top) / usable));
   }
@@ -591,22 +591,7 @@ setTimeout(function(){
 })();
 
 // ── MOBILE GEN-SECTION TEXT ANIMATION ──
-// ── MOBILE GEN-SECTION: each phase reveals independently as scrolled into view ──
-(function(){
-  if(!window.matchMedia('(max-width:960px)').matches) return;
-  var phases = document.querySelectorAll('.gen-phase');
-  if(!phases.length) return;
-  var obs = new IntersectionObserver(function(entries){
-    entries.forEach(function(e){
-      if(e.intersectionRatio >= 0.15){
-        e.target.classList.add('gen-mobile-in');
-      } else if(e.intersectionRatio === 0){
-        e.target.classList.remove('gen-mobile-in');
-      }
-    });
-  }, {threshold:[0, 0.15]});
-  phases.forEach(function(p){ obs.observe(p); });
-})();
+// Mobile gen-section uses the same scroll-driven updatePhases() as desktop — no extra observer needed.
 
 // ── HERO ENTRANCE + SCROLL RE-ANIMATION ──
 (function(){
