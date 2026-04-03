@@ -279,15 +279,29 @@ setTimeout(function(){
     if(phase !== prevPhase){
       const dir = phase > prevPhase ? 'up' : 'down';
       for(let i=0; i<PHASE_COUNT; i++){
+        // text phases
         const el = document.getElementById('gen-phase-'+i);
-        if(!el) continue;
-        if(i === phase){
-          el.classList.remove('exit-up','exit-down');
-          el.classList.add('visible');
-        } else if(el.classList.contains('visible')){
-          el.classList.remove('visible');
-          el.classList.add(dir==='up'?'exit-up':'exit-down');
-          setTimeout(()=>el.classList.remove('exit-up','exit-down'),500);
+        if(el){
+          if(i === phase){
+            el.classList.remove('exit-up','exit-down');
+            el.classList.add('visible');
+          } else if(el.classList.contains('visible')){
+            el.classList.remove('visible');
+            el.classList.add(dir==='up'?'exit-up':'exit-down');
+            setTimeout(()=>el.classList.remove('exit-up','exit-down'),600);
+          }
+        }
+        // photo phases — same crossfade logic
+        const ph = document.getElementById('gen-photo-'+i);
+        if(ph){
+          if(i === phase){
+            ph.classList.remove('exit-up','exit-down');
+            ph.classList.add('visible');
+          } else if(ph.classList.contains('visible')){
+            ph.classList.remove('visible');
+            ph.classList.add(dir==='up'?'exit-up':'exit-down');
+            setTimeout(()=>ph.classList.remove('exit-up','exit-down'),600);
+          }
         }
       }
       prevPhase = phase;
@@ -318,6 +332,15 @@ setTimeout(function(){
   let isVisible = false;
   new IntersectionObserver(entries=>{isVisible=entries[0].isIntersecting;},{threshold:0})
     .observe(document.getElementById('gen-section'));
+
+  let sectionEntered = false;
+  new IntersectionObserver((entries, obs) => {
+    if(entries[0].isIntersecting && !sectionEntered) {
+      sectionEntered = true;
+      document.getElementById('gen-section').classList.add('gen-section-entered');
+      obs.disconnect();
+    }
+  }, {threshold: 0.1}).observe(document.getElementById('gen-section'));
 
   // Animation loop — scroll-driven camera orbit
   function animate(){
